@@ -40,6 +40,7 @@ function M.foldfunc(args)
   if width == 0 then return "" end
 
   local foldinfo = C.fold_info(args.wp, args.lnum)
+  local next_foldinfo = C.fold_info(args.wp, args.lnum + 1)
   local closed = foldinfo.lines > 0
 
   local string = closed and "%#Folded#" or "%#FoldColumn#"
@@ -60,6 +61,8 @@ function M.foldfunc(args)
       string = string..args.fold.close
     elseif foldinfo.start == args.lnum and first_level + col > foldinfo.llevel then
       string = string..args.fold.open
+    elseif foldinfo.level > next_foldinfo.level then
+      string = string.."╰"
     else
       string = string..args.fold.sep
     end
