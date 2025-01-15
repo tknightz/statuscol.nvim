@@ -8,11 +8,15 @@ local M = {}
 
 --- Return line number in configured format.
 function M.lnumfunc(args, segment)
+  local foldinfo = C.fold_info(args.wp, args.lnum)
+  local closed = foldinfo.lines > 0
+  local string = closed and "%#Folded#" or "%#FoldColumn#"
+
   if args.sclnu and segment.sign and segment.sign.wins[args.win].signs[args.lnum] then
-    return "%="..M.signfunc(args, segment)
+    return string.. "%="..M.signfunc(args, segment)
   end
   if not args.rnu and not args.nu then return "" end
-  if args.virtnum ~= 0 then return "%=" end
+  if args.virtnum ~= 0 then return string.."%=" end
 
   local lnum = args.rnu and (args.relnum > 0 and args.relnum
       or (args.nu and args.lnum or 0)) or args.lnum
@@ -36,7 +40,9 @@ function M.foldfunc(args)
   if width == 0 then return "" end
 
   local foldinfo = C.fold_info(args.wp, args.lnum)
-  local string = args.cul and args.relnum == 0 and "%#CursorLineFold#" or "%#FoldColumn#"
+  local closed = foldinfo.lines > 0
+
+  local string = closed and "%#Folded#" or "%#FoldColumn#"
   local level = foldinfo.level
 
   if level == 0 then return string..(" "):rep(width).."%*" end
@@ -65,18 +71,21 @@ end
 
 --- Return sign column in configured format.
 function M.signfunc(args, segment)
+  local foldinfo = C.fold_info(args.wp, args.lnum)
+  local closed = foldinfo.lines > 0
+
   local ss = segment.sign
   local wss = ss.wins[args.win]
   if args.virtnum ~= 0 and not ss.wrap then return wss.empty.."%*" end
   local sss = wss.signs[args.lnum]
-  local nonhl = ss.fillcharhl or (args.cul and args.relnum == 0 and "%#CursorLineSign#") or "%#SignColumn#"
+  local nonhl = closed and "%#Folded#" or "%#SignColumn#"
   if type(ss.auto) == "string" and wss.padwidth == 0 then return nonhl..ss.auto.."%*" end
   if not sss then return nonhl..wss.empty.."%*" end
   local text = ""
   local signcount = #sss
   for i = 1, signcount do
     local s = sss[i]
-    local hl_group = args.relnum == 0 and s.cursorline_hl_group or s.sign_hl_group
+    local hl_group = closed and "Folded" or s.sign_hl_group
     text = text.."%#"..hl_group.."#"..s.sign_text.."%*"
   end
   local pad = wss.padwidth - signcount
