@@ -28,9 +28,9 @@ function M.lnumfunc(args, segment)
   lnum = tostring(lnum)
   local pad = (' '):rep(args.nuw - #lnum)
   if args.relnum == 0 and not culright and args.rnu then
-    return lnum..pad.."%="
+    return string..lnum..pad.."%="
   else
-    return "%="..pad..lnum
+    return string.."%="..pad..lnum
   end
 end
 
